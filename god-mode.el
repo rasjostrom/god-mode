@@ -206,7 +206,7 @@ appropriate). Append to keysequence."
     (setq next-modifier
           (cond
            ((string= key god-literal-key)
-            (setq god-literal-sequence t)
+	    (setq god-literal-sequence t)
             "")
            (god-literal-sequence
             (setq key-consumed nil)
@@ -224,9 +224,18 @@ appropriate). Append to keysequence."
           (if key-consumed
               (god-mode-sanitized-key-string (read-event key-string-so-far))
             key))
-    (if key-string-so-far
-        (concat key-string-so-far " " next-modifier next-key)
-      (concat next-modifier next-key))))
+
+    (let* ((next-literal-key-string (concat next-modifier next-key))
+           (translation (lookup-key key-translation-map
+                                    (read-kbd-macro next-literal-key-string t)))
+           (next-interpreted-key-string
+            (if translation
+                (format-kbd-macro translation)
+              next-literal-key-string)))
+
+      (if key-string-so-far
+	  (concat key-string-so-far " " next-interpreted-key-string)
+	next-interpreted-key-string))))
 
 (defun god-mode-lookup-command (key-string)
   "Execute extended keymaps such as C-c, or if it is a command,
